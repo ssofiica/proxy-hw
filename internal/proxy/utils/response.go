@@ -28,3 +28,9 @@ func ParseResponse(r *http.Response) *ResponseInfo {
 	}
 	return &ri
 }
+
+func InternalServerError(w http.ResponseWriter) http.ResponseWriter {
+	w.WriteHeader(http.StatusInternalServerError)
+	w.Write([]byte(`{"reason": "Ошибка сервера"}`))
+	return w
+}

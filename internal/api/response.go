@@ -13,15 +13,3 @@ func InternalServerError(w http.ResponseWriter) http.ResponseWriter {
 	w.Write([]byte(`{"reason": "Ошибка сервера"}`))
 	return w
 }
-
-func Forbidden(w http.ResponseWriter) http.ResponseWriter {
-	w.WriteHeader(http.StatusForbidden)
-	w.Write([]byte(`{"reason": "Недостаточно прав для совершения действия"}`))
-	return w
-}
-
-func WriteResponse(w http.ResponseWriter, code int, response []byte) http.ResponseWriter {
-	w.WriteHeader(code)
-	w.Write(response)
-	return w
-}

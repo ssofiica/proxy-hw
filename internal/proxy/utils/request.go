@@ -1,6 +1,7 @@
 package utils
 
 import (
+	"fmt"
 	"io"
 	"net/http"
 	"strings"
@@ -57,4 +58,46 @@ func ParseRequest(r *http.Request) *RequestInfo {
 		}
 	}
 	return &ri
+}
+
+func MakeRequest(r *RequestInfo) (*http.Request, error) {
+	var body io.Reader
+	if r.Body != "" {
+		body = strings.NewReader(r.Body)
+	}
+
+	req, err := http.NewRequest(
+		r.Method,
+		fmt.Sprintf("http://%s%s", r.Host, r.Path),
+		body,
+	)
+	if err != nil {
+		return nil, err
+	}
+
+	for key, values := range r.Headers {
+		for _, value := range values {
+			req.Header.Add(key, value)
+		}
+	}
+
+	for name, val := range r.Cookies {
+		req.AddCookie(&http.Cookie{Name: name, Value: val})
+	}
+
+	query := req.URL.Query()
+	for key, values := range r.GetParams {
+		for _, val := range values {
+			query.Add(key, val)
+		}
+	}
+	req.URL.RawQuery = query.Encode()
+
+	for key, values := range r.PostParams {
+		for _, value := range values {
+			req.PostForm.Add(key, value)
+		}
+	}
+
+	return req, nil
 }

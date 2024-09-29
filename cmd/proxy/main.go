@@ -20,11 +20,10 @@ var (
 )
 
 func main() {
-	var crt, key string
+	var crt, key, protocol string
 	flag.StringVar(&crt, "crt", "certs/ca.crt", "")
 	flag.StringVar(&key, "key", "certs/ca.key", "")
-	var protocol string
-	flag.StringVar(&protocol, "protocol", "https", "")
+	flag.StringVar(&protocol, "protocol", "http", "")
 	flag.Parse()
 
 	db, err := pgxpool.New(context.Background(), POSTGRES_CONN)

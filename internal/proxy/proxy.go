@@ -8,7 +8,6 @@ import (
 	"net"
 	"net/http"
 
-	"github.com/ssofiica/proxy-hw/internal/api"
 	"github.com/ssofiica/proxy-hw/internal/proxy/utils"
 	"github.com/ssofiica/proxy-hw/internal/repo"
 )
@@ -24,44 +23,45 @@ func NewHandler(repo repo.Repo) Handler {
 }
 
 func (h *Handler) HandlerHTTP(w http.ResponseWriter, r *http.Request) {
-	//r.Header.Del("Proxy-Connection")
+	r.Header.Del("Proxy-Connection")
 	resp, err := http.DefaultTransport.RoundTrip(r)
 	if err != nil {
 		log.Print(err)
-		api.InternalServerError(w)
+		utils.InternalServerError(w)
+		return
 	}
 
 	io.Copy(w, resp.Body)
 	if err = resp.Body.Close(); err != nil {
 		log.Print(err)
 	}
-	copyHeader(resp.Header, w.Header())
+	CopyHeader(resp.Header, w.Header())
 
 	reqInfo := utils.ParseRequest(r)
 	req, err := json.Marshal(reqInfo)
 	if err != nil {
 		log.Print(err)
-		api.InternalServerError(w)
+		utils.InternalServerError(w)
 		return
 	}
 	respInfo := utils.ParseResponse(resp)
 	res, err := json.Marshal(respInfo)
 	if err != nil {
 		log.Print(err)
-		api.InternalServerError(w)
+		utils.InternalServerError(w)
 		return
 	}
 	id, err := h.repo.SaveRequest(context.Background(), req)
 	if err != nil {
 		log.Print(err)
-		api.InternalServerError(w)
+		utils.InternalServerError(w)
 		return
 	}
 
 	err = h.repo.SaveResponse(context.Background(), res, id)
 	if err != nil {
 		log.Print(err)
-		api.InternalServerError(w)
+		utils.InternalServerError(w)
 		return
 	}
 }
@@ -97,7 +97,7 @@ func tunnelConn(dst io.WriteCloser, src io.ReadCloser) {
 	src.Close()
 }
 
-func copyHeader(from, where http.Header) {
+func CopyHeader(from, where http.Header) {
 	for key, values := range from {
 		for _, v := range values {
 			where.Add(key, v)
